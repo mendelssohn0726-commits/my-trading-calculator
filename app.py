@@ -124,6 +124,19 @@ if st.session_state.page == "main":
 elif st.session_state.page == "settings":
     st.title("⚙️ 종목별 1단위 가치 설정")
     st.write("사용하시는 증권사에 맞게 1랏당 1포인트 가치를 수정하세요.")
-    st.session_state.symbol_df = st.data_editor(st.session_state.symbol_df, num_rows="dynamic", use_container_width=True)
+    
+    # column_config를 사용하여 Value 열을 왼쪽 정렬(left)로 설정
+    st.session_state.symbol_df = st.data_editor(
+        st.session_state.symbol_df, 
+        num_rows="dynamic", 
+        use_container_width=True,
+        column_config={
+            "Value": st.column_config.NumberColumn(
+                "Value",
+                alignment="left"  # 이 부분이 핵심입니다!
+            )
+        }
+    )
+    
     if st.button("설정 저장"):
         st.success("저장되었습니다.")
