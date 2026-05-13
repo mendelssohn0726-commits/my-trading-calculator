@@ -1,22 +1,30 @@
 import streamlit as st
 import pandas as pd
+from PIL import Image
 
-import streamlit as st
-import pandas as pd
-from PIL import Image  # 이 줄을 맨 위에 추가하세요
+# 1. 초기 종목 데이터 설정 (이 부분이 반드시 있어야 합니다!)
+if "symbol_df" not in st.session_state:
+    st.session_state.symbol_df = pd.DataFrame([
+        {"Symbol": "US100", "Value": 20.0}, {"Symbol": "JPN225", "Value": 0.63},
+        {"Symbol": "UK100", "Value": 1.361}, {"Symbol": "DAX40", "Value": 1.177},
+        {"Symbol": "XAUUSD", "Value": 100.0}, {"Symbol": "XAGUSD", "Value": 5000.0},
+        {"Symbol": "WTI", "Value": 1000.0}, {"Symbol": "EURUSD", "Value": 100000.0},
+        {"Symbol": "USDJPY", "Value": 635.596}, {"Symbol": "BTCUSD", "Value": 1.0}
+    ])
 
-# 아이콘 이미지 불러오기
+# 2. 아이콘 설정
 try:
     img = Image.open("icon.png")
 except:
-    img = "💰" # 이미지가 없을 때를 대비한 비상용 이모지
+    img = "💰"
 
 st.set_page_config(
-    page_title="Trading Calculator",
-    page_icon=img,            # 이제 이모지 대신 이미지를 아이콘으로 씁니다
+    page_title="나의 랏수 계산기",
+    page_icon=img,
     layout="centered",
     initial_sidebar_state="collapsed"
 )
+
 # 사이드바 설정 (선택지 대신 버튼 하나로 관리)
 if "page" not in st.session_state:
     st.session_state.page = "main"
