@@ -11,8 +11,13 @@ if "symbol_df" not in st.session_state:
         {"Symbol": "USDJPY", "Value": 635.596}, {"Symbol": "BTCUSD", "Value": 1.0}
     ])
 
-st.set_page_config(page_title="트레이딩 계산기", layout="wide")
-
+# 이 부분을 찾아서 아래처럼 수정하세요
+st.set_page_config(
+    page_title="Trading Calculator",  # 브라우저 탭에 표시될 이름
+    page_icon="💰",              # 주소창 옆에 표시될 아이콘 (원하는 이모지로 변경 가능)
+    layout="centered",           # 모바일에서 보기 좋게 중앙 정렬
+    initial_sidebar_state="collapsed" # 모바일에서 메뉴창 숨기기
+)
 # 사이드바 설정 (선택지 대신 버튼 하나로 관리)
 if "page" not in st.session_state:
     st.session_state.page = "main"
