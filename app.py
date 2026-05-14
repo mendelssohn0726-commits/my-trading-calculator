@@ -22,7 +22,7 @@ except:
 st.set_page_config(
     page_title="Trading Calculator",
     page_icon=img,
-    layout="wide", # PC에서 넓게 쓰기 위해 wide 사용 (모바일은 알아서 좁게 스크롤됨)
+    layout="wide",
     initial_sidebar_state="collapsed"
 )
 
@@ -55,7 +55,6 @@ if st.session_state.page == "main":
     if "entries" not in st.session_state:
         st.session_state.entries = [{"price": 0.0, "reason": "⚪ nothing", "custom_reason": ""}]
     
-    # 💡 좌우 1:1 분할 (PC에서는 좌우로, 폰에서는 상하로 자동 배치됨)
     col_input, col_result = st.columns([1, 1])
 
     with col_input:
@@ -151,7 +150,19 @@ if st.session_state.page == "main":
                                 st.write(f" **${format_num(round(total_profit, 1))}** ")
 
             st.divider()
-            st.success(f" **최대 손실:** ${format_num(round(seed*(risk_pct/100), 1))} |  **기준 수익:** ${format_num(round(base_lot*abs(prices[0]-prices[1])*unit_val, 1))}")
+            
+            # --- 단일 진입 / 다중 진입 시나리오 분기 (오류 해결 핵심) ---
+            max_loss_val = seed * (risk_pct / 100)
+            
+            if len(prices) > 1:
+                base_profit_val = base_lot * abs(prices[0] - prices[1]) * unit_val
+                profit_text = f"**기준 수익:** ${format_num(round(base_profit_val, 1))}"
+            else:
+                # 1차 진입만 있을 경우, 기준 수익 대신 1:1 손익비를 가정하여 표시
+                profit_text = f"**1:1 수익(참고):** ${format_num(round(max_loss_val, 1))}"
+                
+            st.success(f" **최대 손실:** ${format_num(round(max_loss_val, 1))} | {profit_text}")
+            
         else:
             st.info("시드, 비중, 가격 등 모든 정보를 입력한 후 [🚀 계산 결과 보기] 버튼을 누르면 전략이 표시됩니다.")
 
