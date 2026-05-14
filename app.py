@@ -18,9 +18,9 @@ try:
 except:
     img = "💰"
 
-# 3. 페이지 기본 설정
+# 3. 페이지 기본 설정 (이름 변경)
 st.set_page_config(
-    page_title="나의 랏수 계산기",
+    page_title="Trading Calculator",
     page_icon=img,
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -46,7 +46,7 @@ with st.sidebar:
 # --- 메인 계산기 화면 ---
 # ==========================================
 if st.session_state.page == "main":
-    st.title("🧮 랏수 계산기")
+    st.title("🧮 Trading Calculator")
     
     if "entries" not in st.session_state:
         st.session_state.entries = [{"price": 0.0, "reason": "⚪ nothing", "custom_reason": ""}]
@@ -54,22 +54,7 @@ if st.session_state.page == "main":
     col_input, col_result = st.columns([1, 1])
 
     with col_input:
-        # --- 폼(Form) 외부: 차수 조절 버튼 ---
-        st.subheader("⚙️ 진입 차수 설정")
-        bc1, bc2 = st.columns(2)
-        with bc1:
-            if st.button("➕ 진입 횟수 늘리기", use_container_width=True):
-                st.session_state.entries.append({"price": 0.0, "reason": "⚪ nothing", "custom_reason": ""})
-                st.rerun()
-        with bc2:
-            if len(st.session_state.entries) > 1 and st.button("➖ 마지막 제거", use_container_width=True):
-                st.session_state.entries.pop()
-                st.rerun()
-                
-        st.caption("💡 팁: 횟수를 먼저 설정한 뒤, 아래 내용을 입력하고 [계산하기]를 누르세요.")
-
-        # --- 폼(Form) 내부: 실제 데이터 입력 구역 ---
-        # 이 구역 안에서는 아무리 입력해도 계산하기 버튼을 누르기 전까지 로딩(화면 깜빡임)이 발생하지 않습니다.
+        # --- 폼(Form) 내부: 깜빡임 없이 입력하는 구역 ---
         with st.form("calc_form"):
             st.subheader("💰 투자금")
             seed = st.number_input("내 시드 (USD)", value=None, placeholder="예: 10000", format="%g", step=100.0)
@@ -106,10 +91,21 @@ if st.session_state.page == "main":
             # 제출(계산) 버튼
             submitted = st.form_submit_button("🚀 계산하기", type="primary", use_container_width=True)
 
+        # --- 폼(Form) 외부: 차수 조절 버튼을 입력칸 아래로 이동 ---
+        st.write(" ") # 약간의 여백
+        bc1, bc2 = st.columns(2)
+        with bc1:
+            if st.button("➕ 진입 횟수 늘리기", use_container_width=True):
+                st.session_state.entries.append({"price": 0.0, "reason": "⚪ nothing", "custom_reason": ""})
+                st.rerun()
+        with bc2:
+            if len(st.session_state.entries) > 1 and st.button("➖ 마지막 제거", use_container_width=True):
+                st.session_state.entries.pop()
+                st.rerun()
+
     with col_result:
         st.subheader("📑 계산 결과 및 탈출 전략")
         
-        # ready: 필수 항목이 모두 채워져 있는지 확인
         ready = seed and risk_pct and stop_loss and all(p is not None and p != 0 for p in prices)
         
         if ready:
