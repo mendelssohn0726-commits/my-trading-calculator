@@ -64,7 +64,8 @@ if st.session_state.page == "main":
         reasons_list = ["⚪ nothing", "🟡 500 EMA", "🟢 High 20 EMA", "🔵 High 60 EMA", "🟣 High 100 EMA", "🔴 High UBB", "🔴 High LBB", "📝 직접 입력"]
         
         for i, entry in enumerate(st.session_state.entries):
-            c1, c2 = st.columns([1.5, 1])
+            # 아래 줄들이 for문보다 안쪽으로 들여쓰기 되어 있어야 합니다.
+            c1, c2 = st.columns([1, 1.3]) # 내부 칸 비율: 근거 칸을 더 넓게
             with c1:
                 st.session_state.entries[i]["price"] = st.number_input(
                     f"{i+1}차 진입가", value=None, placeholder="가격 입력", format="%g", key=f"price_{i}"
