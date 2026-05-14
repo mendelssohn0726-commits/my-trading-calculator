@@ -12,7 +12,7 @@ if "symbol_df" not in st.session_state:
         {"Symbol": "USDJPY", "Value": 635.596}, {"Symbol": "BTCUSD", "Value": 1.0}
     ])
 
-# 2. 아이콘 설정 (에러 방지용 try-except)
+# 2. 아이콘 설정
 try:
     img = Image.open("icon.png")
 except:
@@ -56,8 +56,10 @@ if st.session_state.page == "main":
 
     with col_input:
         st.subheader("💰 투자금")
-        seed = st.number_input("내 시드 (USD)", value=None, placeholder="예: 10000", format="%g")
-        risk_pct = st.number_input("손실 비중 (%)", value=None, placeholder="예: 2.0", format="%g")
+        # step=100.0 추가: 시드는 100달러씩 증감
+        seed = st.number_input("내 시드 (USD)", value=None, placeholder="예: 10000", format="%g", step=100.0)
+        # step=1.0 추가: 비중은 1%씩 증감
+        risk_pct = st.number_input("손실 비중 (%)", value=None, placeholder="예: 2.0", format="%g", step=1.0)
         
         symbol_list = st.session_state.symbol_df["Symbol"].tolist()
         selected_symbol = st.selectbox("거래 종목", symbol_list)
@@ -68,11 +70,12 @@ if st.session_state.page == "main":
         reasons_list = ["⚪ nothing", "🟡 500 EMA", "🟢 High 20 EMA", "🔵 High 60 EMA", "🟣 High 100 EMA", "🔴 High UBB", "🔴 High LBB", "📝 직접 입력"]
         
         for i, entry in enumerate(st.session_state.entries):
-            # 내부 진입 계획 칸 비율 (글자 잘림 방지)
+            # 내부 진입 계획 칸 비율
             c1, c2 = st.columns([1, 1.3]) 
             with c1:
+                # step=10.0 추가: 가격은 10씩 증감
                 st.session_state.entries[i]["price"] = st.number_input(
-                    f"{i+1}차 진입가", value=None, placeholder="가격 입력", format="%g", key=f"price_{i}"
+                    f"{i+1}차 진입가", value=None, placeholder="가격 입력", format="%g", key=f"price_{i}", step=10.0
                 )
             with c2:
                 st.session_state.entries[i]["reason"] = st.selectbox(
@@ -92,7 +95,8 @@ if st.session_state.page == "main":
                 st.rerun()
 
         st.write("---")
-        stop_loss = st.number_input("⛔ 손절가 (최종)", value=None, placeholder="손절 가격 입력", format="%g")
+        # step=10.0 추가: 손절가도 10씩 증감
+        stop_loss = st.number_input("⛔ 손절가 (최종)", value=None, placeholder="손절 가격 입력", format="%g", step=10.0)
 
     with col_result:
         st.subheader("📑 계산 결과 및 탈출 전략")
