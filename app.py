@@ -18,7 +18,7 @@ try:
 except:
     img = "💰"
 
-# 3. 페이지 기본 설정 (이름 변경)
+# 3. 페이지 기본 설정
 st.set_page_config(
     page_title="Trading Calculator",
     page_icon=img,
@@ -31,7 +31,11 @@ def format_num(n):
     if n is None: return ""
     return f"{n:g}"
 
-# 5. 사이드바 설정 (화면 이동)
+# 5. 계산 버튼 상태 관리
+if "calc_pressed" not in st.session_state:
+    st.session_state.calc_pressed = False
+
+# 6. 사이드바 설정 (화면 이동)
 if "page" not in st.session_state:
     st.session_state.page = "main"
 
@@ -54,61 +58,64 @@ if st.session_state.page == "main":
     col_input, col_result = st.columns([1, 1])
 
     with col_input:
-        # --- 폼(Form) 내부: 깜빡임 없이 입력하는 구역 ---
-        with st.form("calc_form"):
-            st.subheader("💰 투자금")
-            seed = st.number_input("내 시드 (USD)", value=None, placeholder="예: 10000", format="%g", step=100.0)
-            risk_pct = st.number_input("손실 비중 (%)", value=None, placeholder="예: 2.0", format="%g", step=1.0)
-            
-            symbol_list = st.session_state.symbol_df["Symbol"].tolist()
-            selected_symbol = st.selectbox("거래 종목", symbol_list)
+        st.subheader("💰 투자금")
+        seed = st.number_input("내 시드 (USD)", value=None, placeholder="예: 10000", format="%g", step=100.0)
+        risk_pct = st.number_input("손실 비중 (%)", value=None, placeholder="예: 2.0", format="%g", step=1.0)
+        
+        symbol_list = st.session_state.symbol_df["Symbol"].tolist()
+        selected_symbol = st.selectbox("거래 종목", symbol_list)
 
-            st.divider()
-            st.subheader("📍 진입 계획")
-            reasons_list = ["⚪ nothing", "🟡 500 EMA", "🟢 High 20 EMA", "🔵 High 60 EMA", "🟣 High 100 EMA", "🔴 High UBB", "🔴 High LBB", "📝 직접 입력"]
-            
-            prices = []
-            reasons = []
-            custom_reasons = []
-            
-            for i in range(len(st.session_state.entries)):
-                c1, c2 = st.columns([1, 1.3]) 
-                with c1:
-                    p = st.number_input(f"{i+1}차 진입가", value=None, placeholder="가격 입력", format="%g", key=f"price_{i}", step=10.0)
-                    prices.append(p)
-                with c2:
-                    r = st.selectbox(f"진입 근거 {i+1}", reasons_list, key=f"reason_{i}")
-                    reasons.append(r)
-                    if "직접 입력" in r:
-                        cr = st.text_input(f"내용 입력 {i+1}", key=f"custom_{i}")
-                        custom_reasons.append(cr)
-                    else:
-                        custom_reasons.append("")
-
-            st.write("---")
-            stop_loss = st.number_input("⛔ 손절가 (최종)", value=None, placeholder="손절 가격 입력", format="%g", step=10.0)
-            
-            # 제출(계산) 버튼
-            submitted = st.form_submit_button("🚀 계산하기", type="primary", use_container_width=True)
-
-        # --- 폼(Form) 외부: 차수 조절 버튼을 입력칸 아래로 이동 ---
-        st.write(" ") # 약간의 여백
+        st.divider()
+        st.subheader("📍 진입 계획")
+        reasons_list = ["⚪ nothing", "🟡 500 EMA", "🟢 High 20 EMA", "🔵 High 60 EMA", "🟣 High 100 EMA", "🔴 High UBB", "🔴 High LBB", "📝 직접 입력"]
+        
+        prices = []
+        reasons = []
+        custom_reasons = []
+        
+        for i in range(len(st.session_state.entries)):
+            c1, c2 = st.columns([1, 1.3]) 
+            with c1:
+                p = st.number_input(f"{i+1}차 진입가", value=None, placeholder="가격 입력", format="%g", key=f"price_{i}", step=10.0)
+                prices.append(p)
+            with c2:
+                r = st.selectbox(f"진입 근거 {i+1}", reasons_list, key=f"reason_{i}")
+                reasons.append(r)
+                if "직접 입력" in r:
+                    cr = st.text_input(f"내용 입력 {i+1}", key=f"custom_{i}")
+                    custom_reasons.append(cr)
+                else:
+                    custom_reasons.append("")
+        
+        # --- 진입 가격 바로 아래에 횟수 조절 버튼 배치 ---
+        st.write(" ")
         bc1, bc2 = st.columns(2)
         with bc1:
             if st.button("➕ 진입 횟수 늘리기", use_container_width=True):
                 st.session_state.entries.append({"price": 0.0, "reason": "⚪ nothing", "custom_reason": ""})
+                st.session_state.calc_pressed = False # 추가 시 결과 숨김
                 st.rerun()
         with bc2:
             if len(st.session_state.entries) > 1 and st.button("➖ 마지막 제거", use_container_width=True):
                 st.session_state.entries.pop()
+                st.session_state.calc_pressed = False # 제거 시 결과 숨김
                 st.rerun()
+
+        st.divider()
+        
+        # --- 조절 버튼 아래에 손절가 및 계산 버튼 배치 ---
+        st.subheader("⛔ 손절 및 계산")
+        stop_loss = st.number_input("최종 손절가", value=None, placeholder="손절 가격 입력", format="%g", step=10.0)
+        
+        if st.button("🚀 계산하기", type="primary", use_container_width=True):
+            st.session_state.calc_pressed = True
 
     with col_result:
         st.subheader("📑 계산 결과 및 탈출 전략")
         
         ready = seed and risk_pct and stop_loss and all(p is not None and p != 0 for p in prices)
         
-        if ready:
+        if st.session_state.calc_pressed and ready:
             unit_val = st.session_state.symbol_df.loc[st.session_state.symbol_df["Symbol"] == selected_symbol, "Value"].values[0]
             
             lots_ratio = [1.0] 
@@ -145,7 +152,7 @@ if st.session_state.page == "main":
             st.divider()
             st.success(f"**최대 손실:** ${format_num(round(seed*(risk_pct/100), 2))} | **목표 수익:** ${format_num(round(base_lot*abs(prices[0]-prices[1])*unit_val, 2))}")
         else:
-            st.info("입력을 마친 후 [🚀 계산하기] 버튼을 누르면 결과가 표시됩니다.")
+            st.info("시드, 비중, 가격 등 모든 정보를 입력한 후 [🚀 계산하기] 버튼을 누르면 전략이 표시됩니다.")
 
 # ==========================================
 # --- 설정 화면 ---
