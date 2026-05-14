@@ -48,7 +48,7 @@ if st.session_state.page == "main":
     if "entries" not in st.session_state:
         st.session_state.entries = [{"price": 0.0, "reason": "⚪ nothing", "custom_reason": ""}]
     
-    col_input, col_result = st.columns([1, 1.4])
+    col_input, col_result = st.columns([1, 1])
 
     with col_input:
         st.subheader("💰 투자금")
