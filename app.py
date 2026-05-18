@@ -1,16 +1,25 @@
 import streamlit as st
 import pandas as pd
 from PIL import Image
+import os
 
-# 1. 초기 종목 데이터 설정
+# 데이터를 저장할 파일 경로 정의
+CSV_FILE = "symbols.csv"
+
+# 1. 초기 종목 데이터 설정 (파일이 있으면 불러오고, 없으면 기본값으로 파일 생성)
 if "symbol_df" not in st.session_state:
-    st.session_state.symbol_df = pd.DataFrame([
-        {"Symbol": "US100", "Value": 20.0}, {"Symbol": "JPN225", "Value": 0.63},
-        {"Symbol": "UK100", "Value": 1.361}, {"Symbol": "DAX40", "Value": 1.177},
-        {"Symbol": "XAUUSD", "Value": 100.0}, {"Symbol": "XAGUSD", "Value": 5000.0},
-        {"Symbol": "WTI", "Value": 1000.0}, {"Symbol": "EURUSD", "Value": 100000.0},
-        {"Symbol": "USDJPY", "Value": 635.596}, {"Symbol": "BTCUSD", "Value": 1.0}
-    ])
+    if os.path.exists(CSV_FILE):
+        st.session_state.symbol_df = pd.read_csv(CSV_FILE)
+    else:
+        default_df = pd.DataFrame([
+            {"Symbol": "US100", "Value": 20.0}, {"Symbol": "JPN225", "Value": 0.63},
+            {"Symbol": "UK100", "Value": 1.361}, {"Symbol": "DAX40", "Value": 1.177},
+            {"Symbol": "XAUUSD", "Value": 100.0}, {"Symbol": "XAGUSD", "Value": 5000.0},
+            {"Symbol": "WTI", "Value": 1000.0}, {"Symbol": "EURUSD", "Value": 100000.0},
+            {"Symbol": "USDJPY", "Value": 635.596}, {"Symbol": "BTCUSD", "Value": 1.0}
+        ])
+        default_df.to_csv(CSV_FILE, index=False)
+        st.session_state.symbol_df = default_df
 
 # 2. 아이콘 설정 (우상향 차트 아이콘)
 try:
@@ -87,7 +96,6 @@ if st.session_state.page == "main":
                 else:
                     custom_reasons.append("")
         
-        # --- 진입 가격 바로 아래에 횟수 조절 버튼 배치 ---
         st.write(" ")
         bc1, bc2 = st.columns(2)
         with bc1:
@@ -103,7 +111,6 @@ if st.session_state.page == "main":
 
         st.divider()
         
-        # --- 조절 버튼 아래에 손절가 및 계산 버튼 배치 ---
         st.subheader("⛔ 최종 손절")
         stop_loss = st.number_input("손절가 입력", value=None, placeholder="손절 가격 입력", format="%g", step=10.0)
         
@@ -151,25 +158,40 @@ if st.session_state.page == "main":
 
             st.divider()
             
-            # --- 단일 진입 / 다중 진입 시나리오 분기 (오류 해결 핵심) ---
             max_loss_val = seed * (risk_pct / 100)
-            
             if len(prices) > 1:
                 base_profit_val = base_lot * abs(prices[0] - prices[1]) * unit_val
                 profit_text = f"**기준 수익:** ${format_num(round(base_profit_val, 1))}"
             else:
-                # 1차 진입만 있을 경우, 기준 수익 대신 1:1 손익비를 가정하여 표시
                 profit_text = f"**1:1 수익(참고):** ${format_num(round(max_loss_val, 1))}"
                 
             st.success(f" **최대 손실:** ${format_num(round(max_loss_val, 1))} | {profit_text}")
-            
         else:
             st.info("시드, 비중, 가격 등 모든 정보를 입력한 후 [🚀 계산 결과 보기] 버튼을 누르면 전략이 표시됩니다.")
 
 # ==========================================
-# --- 설정 화면 ---
+# --- 설정 화면 (수정값 영구 저장 로직 반영) ---
 # ==========================================
 elif st.session_state.page == "settings":
     st.title("⚙️ 종목 가치 설정")
-    st.session_state.symbol_df = st.data_editor(st.session_state.symbol_df, num_rows="dynamic", use_container_width=True)
-    if st.button("저장"): st.success("완료!")
+    st.write("사용하시는 증권사에 맞게 1랏당 1포인트 가치를 수정하세요.")
+    
+    # 표에서 변경된 내역을 실시간으로 임시 변수에 저장
+    edited_df = st.data_editor(
+        st.session_state.symbol_df, 
+        num_rows="dynamic", 
+        use_container_width=True,
+        column_config={
+            "Value": st.column_config.NumberColumn(
+                "Value",
+                alignment="left"
+            )
+        }
+    )
+    
+    # 저장 버튼을 누르면 내부 파일과 현재 메모리를 동시에 동기화
+    if st.button("설정 저장", type="primary"):
+        edited_df.to_csv(CSV_FILE, index=False)
+        st.session_state.symbol_df = edited_df
+        st.success("설정이 안전하게 저장되었습니다!")
+        st.rerun()
