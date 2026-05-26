@@ -12,11 +12,8 @@ if "symbol_df" not in st.session_state:
         st.session_state.symbol_df = pd.read_csv(CSV_FILE)
     else:
         default_df = pd.DataFrame([
-            {"Symbol": "US100", "Value": 20.0}, {"Symbol": "JPN225", "Value": 0.63},
-            {"Symbol": "UK100", "Value": 1.361}, {"Symbol": "DAX40", "Value": 1.177},
-            {"Symbol": "XAUUSD", "Value": 100.0}, {"Symbol": "XAGUSD", "Value": 5000.0},
-            {"Symbol": "WTI", "Value": 1000.0}, {"Symbol": "EURUSD", "Value": 100000.0},
-            {"Symbol": "USDJPY", "Value": 635.596}, {"Symbol": "BTCUSD", "Value": 1.0}
+            {"Symbol": "US100", "Value": 1.0}, {"Symbol": "XAUUSD", "Value": 100.0},
+            {"Symbol": "WTI", "Value": 1000.0}, {"Symbol": "BTCUSD", "Value": 1.0}
         ])
         default_df.to_csv(CSV_FILE, index=False)
         st.session_state.symbol_df = default_df
